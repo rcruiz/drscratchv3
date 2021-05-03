@@ -1,13 +1,13 @@
-import json
-import zipfile
-
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class DeadCode():
-    """Plugin that indicates unreachable code in Scratch files."""
+class DeadCode:
+    """
+    Search blocks of Scratch Project that never are executed or
+    unreachable code.
+    """
 
     def __init__(self):
 
@@ -21,14 +21,19 @@ class DeadCode():
         self.loop_blocks = ["control_repeat", "control_forever", "control_if", "control_if_else",
                             "control_repeat_until"]
 
+    def analyze(self, json_project):
+        """
+        Run and return the results from the DeadCode plugin.
+        Search blocks match with event_variables or loop_blocks
+        no initialized in class attributes. Check inputs of block.
 
-    """Run and return the results form the DeadCode plugin."""
-    def analyze(self, filename):
+        With an iterator over the (key, value) items of json_project,
 
-        zip_file = zipfile.ZipFile(filename, "r")
-        json_project = json.loads(zip_file.open("project.json").read())
+        :param json_project: JSON of Scratch project.
+        :return dict_sprites: dictionary with unreachable blocks.
+        """
 
-        sprites = {}
+        dict_sprites = {}
 
         for key, value in json_project.iteritems():
             if key == "targets":
@@ -60,14 +65,19 @@ class DeadCode():
                                                 blocks_list.append(str(blocks_dicc["opcode"]))
 
                     if blocks_list:
-                        sprites[sprite] = blocks_list
+                        dict_sprites[sprite] = blocks_list
                         self.dead_code_instances += 1
 
-        return sprites
-
-    """Output the number of instances that contained dead code."""
+        return dict_sprites
 
     def finalize(self, dicc_deadCode, filename):
+        """
+        Output the number of instances that contained dead code.
+
+        :param dicc_deadCode: Dictionary with dead code blocks
+        :param filename:
+        :return result: String
+        """
 
         result = ""
         result += filename
@@ -78,9 +88,10 @@ class DeadCode():
         return result
 
 
-def main(filename):
-    """The entrypoint for the 'deadCode' extension"""
-
+def main(json_project, filename):
+    """
+    The entrypoint for the 'deadCode' extension
+    """
     deadCode = DeadCode()
-    result = deadCode.analyze(filename)
-    return deadCode.finalize(result, filename)
+    dict_deadcode = deadCode.analyze(json_project)
+    return deadCode.finalize(dict_deadcode, filename)
