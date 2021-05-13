@@ -11,6 +11,9 @@ RUN mkdir /var/www
 WORKDIR /var/www
 ADD . /var/www/
 
+RUN mkdir -p /var/www/log
+RUN touch /var/www/log/logFile.txt
+
 # Install dependencies
 RUN apt-get update && apt-get upgrade -y && apt-get autoclean
 
