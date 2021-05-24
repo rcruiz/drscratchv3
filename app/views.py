@@ -81,7 +81,8 @@ def main(request):
 def contest(request):
     """
     Render the contest Scratch 2019 page.
-    :param request: Http Request
+
+    :param request: Http Request.
     """
     return render(request, 'contest.html', {})
 
@@ -89,7 +90,8 @@ def contest(request):
 def collaborators(request):
     """
     Render the page with the collaborators of Dr. Scratch.
-    :param request: Http Request
+
+    :param request: HTTP Request
     """
     return render(request, 'main/collaborators.html')
 
@@ -106,7 +108,14 @@ def date_range(start, end):
 
 
 def statistics(request):
-    """Initializing variables"""
+    """Initializing variables
+    Take the data in an orderly way so that the statistics of Dr.
+    Scratch can be represented. For this, the date on which these
+    statistics are collected is taken into account. Statistical
+    analysis are displayed according to a template.
+
+    :param request: Http Request.
+    """
 
     start = date(2015, 8, 1)
     end = datetime.today()
@@ -117,7 +126,7 @@ def statistics(request):
     date_list = date_range(start, end)
     my_dates = []
     for n in date_list:
-        my_dates.append(n.strftime("%d/%m"))  # used for x axis in
+        my_dates.append(n.strftime("%d/%m"))  # used for x axis in. Convert object to a string according to a given format
 
     # This final section stores all data for the template
     obj = Stats.objects.order_by("-id")[0]
@@ -216,11 +225,11 @@ def build_dictionary_with_ct_automatic_analysis(request):
 
 def get_type_user(request):
     """
-    Check whether the user is authenticated or not, returning the user type of Dr. Scratch
-    Types: organization and coder.
+    Check whether the user is authenticated or not, returning the user
+    type of Dr. Scratch. The types of user are organization, coder or none.
 
-    :param request: HttpRequest object.
-    :return user: string associated with user type of Dr. Scratch
+    :param request: HttpRequest.
+    :returns: Name and type of Scratch user.
     """
     if request.user.is_authenticated():
         username = request.user.username
@@ -236,9 +245,10 @@ def save_entry_file_in_db(sb3_filename_from_form, username, method, datetime_now
     """
     Save information of Scratch project as a File Object in a table in DB.
 
-    :param sb3_filename_from_form: name of Scratch Project post in form by HTTP Request.
-    :param username: User of Dr. Scratch to store in DB.
-    :param method: project or url.
+    :param sb3_filename_from_form: name of Scratch Project post in form
+        by HTTP Request.
+    :param username: string of user of Dr. Scratch to store in DB.
+    :param method: string with analysis mode by project or by url.
     :param datetime_now: date when the project is registered.
     :return filename: File Object in DB with all fields fill in.
     """
@@ -353,10 +363,6 @@ def _make_analysis_by_upload(request):
         sb3_unique_name = generate_unique_name_for_saving_project(sb3_filename_from_form)
         path_sb3_file_saved, version = check_version(sb3_filename_from_form, sb3_unique_name)
 
-        # Save file in server
-        # counter = 0
-        #file_name = handler_upload(file_saved, counter, sb3_unique_name)
-
         with open(path_sb3_file_saved, 'wb+') as destination:
             for chunk in file_sb3_uploaded.chunks():
                 destination.write(chunk)
@@ -449,9 +455,9 @@ def generator_dic(request, id_project):
     url/error. The path will change from uploads folder to error_analyzing
     folder.
 
-    :param request: Http Request object.
+    :param request: Http Request.
     :param id_project: Identifier of Scratch project.
-    :return dict_metrics_ct:
+    :return dict_metrics_ct: dictionary with metrics associated with CT skills
     :raise DrScratchException: Fail in logger. The dictionary does not exist.
     :raise Exception: The Scratch project does not exist in the Scratch server.
     """
@@ -471,7 +477,7 @@ def generator_dic(request, id_project):
         traceback.print_exc()
         dict_metrics_ct = {'Error': 'no_exists'}
         return dict_metrics_ct
-    # ya tenemos el fichero .sb3 en /uploads
+
     try:
         dict_metrics_ct = analyze_project(request, path_project, file, ext_type_project)
     except Exception:
@@ -487,18 +493,17 @@ def generator_dic(request, id_project):
         return dict_metrics_ct
 
     dict_metrics_ct['Error'] = 'None'
-
     return dict_metrics_ct
 
 
 def save_projectsb3(path_file_temporary, id_project):
     """
-    Save Scratch project in sb3 format into uploads folder. The project pass from
-    temporary folder (utemp) to upload folder.
+    Save Scratch project in sb3 format into uploads folder. The project goes from
+    temporary folder utemp to upload folder.
 
     :param path_file_temporary: Path to temporary file associated with Scratch project.
     :param id_project: ID of Scratch project.
-    :return unique_file_name_for_saving:
+    :return unique_file_name_for_saving: Given name to identify the project sb3.
     :return ext_project: string with new or old project.json.
     """
     path_dir_zips = PATH_DRSCRATCH_PROJECT + "/uploads/"
@@ -535,13 +540,14 @@ def send_request_getstudio(id_studio):
 
 def write_entry_activity_in_logfile(file_object):
     """
-    Add a new entry in logFile of folder log with fileName, ID, method of analysis
-    (url or project) and time. Write Scratch project in the log_file.
+    Add a new ent  in logFile of folder log with fileName, ID, method of
+    analysis(url or project) and time. Write Scratch project in the
+    log_file.
 
     :param file_object: File object with data of Scratch project.
     :raise OSError: Exception when the file log_file is not found.
     :raise Exception: Print other exception information and stack
-    trace entries from traceback.
+        trace entries from traceback.
     """
 
     path_log = PATH_DRSCRATCH_PROJECT + "/log/"
@@ -582,7 +588,7 @@ def download_save_project_json_from_servers(id_project):
     path_json_file = path_utemp + '_new_project.json'
 
     try:
-        response_from_scratch = urllib2.urlopen(url_json_scratch)  # se descarga un proyecto desde la url as file-like object
+        response_from_scratch = urllib2.urlopen(url_json_scratch)
     except urllib2.HTTPError as e:
         print('The server could not fulfill the request.')
         # Two ways, id does not exist in servers or id is in other server
@@ -603,7 +609,6 @@ def download_save_project_json_from_servers(id_project):
         resulting_file = open(path_json_file, 'wb')
         resulting_file.write(json_string_format)
         resulting_file.close()
-        # en un archivo físico lo he guardado en utemp
     except ValueError as e:
         logger.error('ValueError: %s', e.message)
         raise DrScratchException
@@ -616,7 +621,7 @@ def download_save_project_json_from_servers(id_project):
 
 def send_request_getsb3(id_project, username, method):
     """
-    ToDo
+    Get and save the selected Scratch project. Add an entry in logFile.
 
     :param id_project: ID associated with the Scratch project.
     :param username: User of Dr. Scratch to store in DB.
@@ -701,7 +706,7 @@ def handler_upload(file_saved, counter, sb3_unique_name):
 
 
 def check_version(filename_scratch_project, sb3_unique_name):
-    """Check the version of the project and return it with his path
+    """Check the version of the project and return it with his path.
 
     :param sb3_unique_name: String with path, name of project and date.
     :param filename_scratch_project: Name of the Scratch project.
@@ -709,6 +714,7 @@ def check_version(filename_scratch_project, sb3_unique_name):
     :return path_sb3_file_saved: Name of project with extension and
         the correct path where the Scratch project is hosted.
     """
+
     dir_zips = PATH_DRSCRATCH_PROJECT + '/uploads/'
     extension = filename_scratch_project.split('.')[-1]
     path_sb3_file_saved = ""
@@ -753,6 +759,7 @@ def analyze_project(request, path_projectsb3, file_object, ext_type_project):
         result_sprite_naming = spriteNaming.main(json_project)
         result_backdrop_naming = backdropNaming.main(json_project)
         result_duplicate_script = duplicateScripts.main(json_project)
+        print(result_duplicate_script)
         result_dead_code = deadCode.main(json_project, path_projectsb3)
 
         #print(result_dead_code)
@@ -764,9 +771,6 @@ def analyze_project(request, path_projectsb3, file_object, ext_type_project):
         # dictionary.update(proc_initialization(resultInitialization, filename))
         code = {'dupCode': duplicate_script_scratch_block(result_duplicate_script)}
         dict_metrics_ct.update(code)
-        #print(dict_metrics_ct)
-        # code = {'dCode':dead_code_scratch_block(resultDeadCode)}
-        # dictionary.update(code)
         return dict_metrics_ct
     else:
         raise Exception
@@ -780,7 +784,7 @@ def proc_mastery(request, result_mastery_analysis, file_object):
     the total and partial points of CT in DB, for a given Scratch
     project. File object updates the score for each of the seven CT
     dimensions studied. The output is a dictionary that include
-    the overall CT score.
+    the the total and partial punctuation of CT skills.
 
     :param request: HTTP request.
     :param result_mastery_analysis: string from which the mastery data
@@ -789,7 +793,6 @@ def proc_mastery(request, result_mastery_analysis, file_object):
     :return dict_mastery: Dictionary with parameters of Mastery plugin
         analysis.
     """
-
     dict_mastery = {}
     lLines = result_mastery_analysis.split('\n')
 
@@ -821,8 +824,9 @@ def proc_duplicate_script(lines, filename):
     Search the duplicated scripts contained in string lines, as well as
     their number. These values are stored inside the dictionary that is
     returned by the method.
+
     :param lines: String with information about duplicate scripts.
-    :param filename: File object of Scratch project. Saved in DB
+    :param filename: File object of Scratch project. Saved in DB.
     :return dict_duplicate_script: Dictionary with number and duplicate
         script found.
     """
@@ -871,7 +875,7 @@ def proc_backdrop_naming(result_backdrop_naming_analysis, filename):
     """
     Extract the number and default backdrop naming from given string
     as parameter. The number and the list of retrieved backdrop naming
-    are stored into a dictionary. the number of default backdrop naming
+    are stored into a dictionary. The number of default backdrop naming
     is saved in DB.
 
     :param result_backdrop_naming_analysis: String with information
@@ -896,11 +900,15 @@ def proc_backdrop_naming(result_backdrop_naming_analysis, filename):
 
 def proc_dead_code(result_dead_coded_analysis, filename):
     """
+    Gets a dictionary containing the blocks of dead code. Save in
+    the dictionary the number of items of dead code. Save this number
+    in DB.
+
     :param result_dead_coded_analysis: String separated by break line by
         summarizing the result from DeadCode plugin.
     :param filename: File object used for saving information related
         to project analyzed.
-    :return dict_dead_code: Dictionary with parameters of DeadCode plugin analysis.
+    :return dict_dead_code: Dictionary with parameters of DeadCode analysis.
     """
     dead_code = result_dead_coded_analysis.split("\n")[1:]
     iterator = 0
@@ -979,6 +987,12 @@ def proc_initialization(lines, filename):
 # ____________________  INFORMATION TO SCRATCH BLOCKS  ________________________#
 
 def duplicate_script_scratch_block(code):
+    """
+    Get the duplicated script from given code as parameter.
+
+    :param code: string in which repeating code is searched.
+    :return code: string with output of duplicated code.
+    """
     try:
         code = code.split("\n")[1:][0]
         if code == "":  # No duplicated scripts found
@@ -990,25 +1004,19 @@ def duplicate_script_scratch_block(code):
 
     return code
 
-
-"""
-def dead_code_scratch_block(code):
-
-    try:
-        code = code.split("\n")[1]
-        for n in code:
-            n = n[15:-2]
-    except:
-        code = ""
-        
-    return code
-"""
-
-
 # ______________________________ TRANSLATE MASTERY ___________________________#
 
 def _translate(request, d, filename):
-    """Translate the output of Hairball"""
+    """Translate the output of Scratch project.
+
+    Assign the seven computational thinking skills to a dictionary
+    in the chosen language. Save this language in DB.
+
+    :param request: HTTP Request.
+    :param d: dictionary with CT skills in english.
+    :param filename: File Object saves the chosen language.
+    :return d_translate_any: dictionary with CT skills in selected language.
+    """
 
     if request.LANGUAGE_CODE == "es":
         d_translate_es = {}
@@ -1146,10 +1154,14 @@ def _translate(request, d, filename):
 # _______________________________ LEARN MORE __________________________________#
 
 def learn(request, page):
-    """Shows pages to learn more about CT"""
+    """
+    Shows pages to learn more about every CT in the chosen language.
+    The user receives advice on how to improve each skill.
 
+    :param request: HTTP request.
+    :param page: requested resource to learn more about a specific skill CT.
+    """
     flagUser = 0
-    # Unicode to string(page)
 
     if request.user.is_authenticated():
         user = request.user.username
@@ -1298,7 +1310,7 @@ def download_certificate(request):
 # ___________________________ ASYNCHRONOUS FORMS ______________________________#
 
 def search_email(request):
-    """Comfirm email"""
+    """Confirm email"""
 
     if request.is_ajax():
         user = Organization.objects.filter(email=request.GET['email'])
@@ -1308,7 +1320,7 @@ def search_email(request):
 
 
 def search_username(request):
-    """Comfirm username"""
+    """Confirm username"""
 
     if request.is_ajax():
         user = Organization.objects.filter(username=request.GET['username'])
@@ -1318,7 +1330,7 @@ def search_username(request):
 
 
 def search_hashkey(request):
-    """Comfirm hashkey"""
+    """Confirm hashkey"""
 
     if request.is_ajax():
         user = OrganizationHash.objects.filter(hashkey=request.GET['hashkey'])
@@ -2179,7 +2191,18 @@ def logout_coder(request):
 
 
 def change_pwd(request):
-    """Change user's password"""
+    """Change user's password
+
+    This method is used to try to recover the account when the registered
+    user forgot their password. Takes the email sent in POST. Look for
+    whether the user belongs to an organization or is a coder in the DB.
+    With an uid (that encodes a bytestring in base 64) and a token that
+    can be used once to do a password reset for the given user, render
+    the context of the template. Send an email message to the person who
+    requested the change to confirm it.
+
+    :param request: HTTP Request.
+    """
 
     if request.method == 'POST':
         recipient = request.POST['email']
@@ -2224,7 +2247,24 @@ def change_pwd(request):
 
 
 def reset_password_confirm(request, uidb64=None, token=None, *arg, **kwargs):
-    """Confirm change password"""
+    """Confirm change password
+
+    It tries to retrieve from its uid, the active user model. Check
+    that a password reset token is correct for a given user. Save the
+    new password after confirming it. After an authentication process
+    it is redirected at the user page.
+
+
+    :param request: HTTP Request.
+    :param uidb64:  base64 encoded string with de user id.
+    :param token: string to check user account activation.
+    :param *args: varying number of positional arguments.
+    :param **kwargs: Dictionary with varying number of items.
+    :raise TypeError: Raised because uid has inappropriate type.
+    :raise ValueError: Raised when uid has an inappropriate value
+    :raise OverflowError: Raisen if uid is outside a required range.
+    :raise UserModel.DoesNotExist: The user is not in DB.
+    """
 
     UserModel = get_user_model()
     try:
@@ -2270,7 +2310,14 @@ def reset_password_confirm(request, uidb64=None, token=None, *arg, **kwargs):
 
 # _________________________________ DISCUSS ___________________________________#
 def discuss(request):
-    """Forum to get feedback"""
+    """Forum to get feedback
+
+    With objects of type DiscussForm or Discuss it saves the values
+    of the corresponding keys sent by POST. The form must be validated.
+    Show all comments sorted by date.
+
+    :param request: HTTP Request.
+    """
 
     comments = dict()
     form = DiscussForm()
